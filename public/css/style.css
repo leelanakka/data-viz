@@ -1,7 +1,12 @@
-svg{
-    border: 1px solid gray;
+svg {
+  border: 1px solid gray;
 }
 
-svg > rect {
-    fill: grey;
+g > rect {
+  fill: grey;
+}
+
+.axis-label {
+  font-size: 20px;
+  text-anchor: middle;
 }
