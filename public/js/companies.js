@@ -15,6 +15,7 @@ const drawCompanies = companies => {
     .range([0, width])
     .domain(_.map(companies, "Name"))
     .padding(0.3);
+
   const c = d3.scaleOrdinal(d3.schemeCategory10);
 
   const svg = d3
@@ -59,7 +60,7 @@ const drawCompanies = companies => {
     .attr("y", 10)
     .attr("transform", "rotate(-40)")
     .attr("text-anchor", "end");
-  const rectangles = g.selectAll("rect").data(companies);
+  const rectangles = g.selectAll("rect").data(companies, c => c.Name);
 
   const newRects = rectangles
     .enter()
@@ -79,15 +80,19 @@ const formats = {
   DivYld: percentageFormat,
   ROCE: percentageFormat,
   QNetProfit: kCroresFormat,
-  QSales: kCroresFormat
+  QSales: kCroresFormat,
+  CMP: d => `₹ ${d}`
 };
 
 const updateCompanies = function(companies, fieldName) {
+  const maxValue = _.get(_.maxBy(companies, fieldName), fieldName, 0);
+
   const svg = d3.select("#chart-area svg");
   svg.select(".y.axis-label").text(fieldName);
+
   const y = d3
     .scaleLinear()
-    .domain([0, _.maxBy(companies, fieldName)[fieldName]])
+    .domain([0, maxValue])
     .range([height, 0]);
 
   const y_axis = d3
@@ -102,11 +107,28 @@ const updateCompanies = function(companies, fieldName) {
     .duration(1000)
     .ease(d3.easeLinear);
 
+  const x = d3
+    .scaleBand()
+    .range([0, width])
+    .domain(_.map(companies, "Name"))
+    .padding(0.3);
+
+  const x_axis = d3.axisBottom(x);
+  svg.select(".x-axis").call(x_axis);
+
   svg
     .selectAll("rect")
-    .data(companies)
+    .data(companies, c => c.Name)
+    .exit()
+    .remove();
+
+  svg
+    .selectAll("rect")
+    .data(companies, c => c.Name)
     .transition(t)
     .attr("y", c => y(c[fieldName]))
+    .attr("x", c => x(c.Name))
+    .attr("width", x.bandwidth)
     .attr("height", c => y(0) - y(c[fieldName]));
 };
 
@@ -119,11 +141,12 @@ const main = () => {
   d3.csv("data/companies.csv", parseCompany).then(companies => {
     drawCompanies(companies);
     const fields = "CMP,PE,MarketCap,DivYld,QNetProfit,QSales,ROCE".split(",");
-    let step = 0;
+    let step = 1;
     setInterval(
       () => updateCompanies(companies, fields[step++ % fields.length]),
       2000
     );
+    setInterval(() => companies.shift(), 5000);
   });
 };
 window.onload = main;
