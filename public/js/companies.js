@@ -5,16 +5,6 @@ const height = chartSize.height - margin.top - margin.bottom;
 const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
 const drawCompanies = () => {
-  
-  const y = d3
-    .scaleBand()
-    .range([height, 0]);
-
-  const x = d3
-    .scaleBand()
-    .range([0, width])
-    .padding(0.3);
-
   const svg = d3
     .select("#chart-area svg")
     .attr("width", chartSize.width)
@@ -35,19 +25,13 @@ const drawCompanies = () => {
     .attr("transform", "rotate(-90)")
     .attr("class", "y axis-label")
     .attr("y", -60)
-    .attr("x", -height / 2)
+    .attr("x", -height / 2);
 
-  const y_axis = d3
-    .axisLeft(y)
-    
-  const x_axis = d3.axisBottom(x);
-
-  g.append("g")
-    .attr("class", "y-axis")
+  g.append("g").attr("class", "y-axis");
 
   g.append("g")
     .attr("class", "x-axis")
-    .attr("transform", `translate(0,${height})`)
+    .attr("transform", `translate(0,${height})`);
 
   g.selectAll(".x-axis text")
     .attr("x", -5)
@@ -100,39 +84,27 @@ const updateCompanies = function(companies, fieldName) {
   const x_axis = d3.axisBottom(x);
   svg.select(".x-axis").call(x_axis);
 
-  svg
-    .selectAll("rect")
-    .data(companies, c => c.Name)
-    .exit()
-    .remove();
+  const rectangleG = svg.select("g");
+  const rectangles = rectangleG.selectAll("rect").data(companies, c => c.Name);
+  rectangles.exit().remove();
 
   svg
-    .select("g")
     .selectAll(".x-axis text")
     .attr("x", -5)
     .attr("y", 10)
     .attr("transform", "rotate(-40)")
     .attr("text-anchor", "end");
 
-  svg
-    .select("g")
-    .selectAll("rect")
-    .data(companies, c => c.Name)
+  rectangles
     .enter()
     .append("rect")
     .attr("y", () => y(0))
     .attr("x", c => x(c.Name))
-    .transition(t)
-    .attr("fill", c => colors(c.Name))
-    .attr("width", x.bandwidth)
-    .attr("height", c => y(0) - y(c[fieldName]));
-
-  svg
-    .selectAll("rect")
-    .data(companies, c => c.Name)
+    .merge(rectangles)
     .transition(t)
     .attr("y", c => y(c[fieldName]))
     .attr("x", c => x(c.Name))
+    .attr("fill", c => colors(c.Name))
     .attr("width", x.bandwidth)
     .attr("height", c => y(0) - y(c[fieldName]));
 };
