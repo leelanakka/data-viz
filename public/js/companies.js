@@ -4,17 +4,15 @@ const width = chartSize.width - margin.left - margin.right;
 const height = chartSize.height - margin.top - margin.bottom;
 const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
-const drawCompanies = companies => {
-  const maxHeight = _.maxBy(companies, "CMP").CMP;
+const drawCompanies = () => {
+  
   const y = d3
-    .scaleLinear()
-    .domain([0, maxHeight])
+    .scaleBand()
     .range([height, 0]);
 
   const x = d3
     .scaleBand()
     .range([0, width])
-    .domain(_.map(companies, "Name"))
     .padding(0.3);
 
   const svg = d3
@@ -24,6 +22,7 @@ const drawCompanies = companies => {
 
   const g = svg
     .append("g")
+    .attr("class", "companies")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
   g.append("text")
@@ -37,38 +36,24 @@ const drawCompanies = companies => {
     .attr("class", "y axis-label")
     .attr("y", -60)
     .attr("x", -height / 2)
-    .text("CMP");
 
   const y_axis = d3
     .axisLeft(y)
-    .tickFormat(d => "₹" + d)
-    .ticks(8);
-
+    
   const x_axis = d3.axisBottom(x);
 
   g.append("g")
     .attr("class", "y-axis")
-    .call(y_axis);
 
   g.append("g")
     .attr("class", "x-axis")
     .attr("transform", `translate(0,${height})`)
-    .call(x_axis);
+
   g.selectAll(".x-axis text")
     .attr("x", -5)
     .attr("y", 10)
     .attr("transform", "rotate(-40)")
     .attr("text-anchor", "end");
-  const rectangles = g.selectAll("rect").data(companies, c => c.Name);
-
-  const newRects = rectangles
-    .enter()
-    .append("rect")
-    .attr("x", b => x(b.Name))
-    .attr("y", b => y(b.CMP))
-    .attr("width", x.bandwidth)
-    .attr("height", b => y(0) - y(b.CMP))
-    .attr("fill", b => colors(b.Name));
 };
 
 const percentageFormat = d => `${d}%`;
@@ -172,7 +157,7 @@ const main = () => {
   d3.csv("data/companies.csv", parseCompany).then(companies => {
     drawCompanies(companies);
     const fields = "CMP,PE,MarketCap,DivYld,QNetProfit,QSales,ROCE".split(",");
-    let step = 1;
+    let step = 0;
     setInterval(
       () => updateCompanies(companies, fields[step++ % fields.length]),
       2000
