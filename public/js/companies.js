@@ -4,7 +4,7 @@ const width = chartSize.width - margin.left - margin.right;
 const height = chartSize.height - margin.top - margin.bottom;
 const colors = d3.scaleOrdinal(d3.schemeCategory10);
 
-const drawCompanies = () => {
+const init = () => {
   const svg = d3
     .select("#chart-area svg")
     .attr("width", chartSize.width)
@@ -42,14 +42,14 @@ const drawCompanies = () => {
 
 const percentageFormat = d => `${d}%`;
 const kCroresFormat = d => `${d / 1000}k cr ₹`;
-
+const rupeeFormat = d => `₹ ${d}`;
 const formats = {
   MarketCap: kCroresFormat,
   DivYld: percentageFormat,
   ROCE: percentageFormat,
   QNetProfit: kCroresFormat,
   QSales: kCroresFormat,
-  CMP: d => `₹ ${d}`
+  CMP: rupeeFormat
 };
 
 const updateCompanies = function(companies, fieldName) {
@@ -125,16 +125,18 @@ const parseCompany = ({ Name, ...numerics }) => {
   return { Name, ...numerics };
 };
 
+const animateCompanies = companies => {
+  init(companies);
+  const fields = "CMP,PE,MarketCap,DivYld,QNetProfit,QSales,ROCE".split(",");
+  let step = 0;
+  setInterval(
+    () => updateCompanies(companies, fields[step++ % fields.length]),
+    2000
+  );
+  frequentlyMoveCompanies(companies, []);
+};
+
 const main = () => {
-  d3.csv("data/companies.csv", parseCompany).then(companies => {
-    drawCompanies(companies);
-    const fields = "CMP,PE,MarketCap,DivYld,QNetProfit,QSales,ROCE".split(",");
-    let step = 0;
-    setInterval(
-      () => updateCompanies(companies, fields[step++ % fields.length]),
-      2000
-    );
-    frequentlyMoveCompanies(companies, []);
-  });
+  d3.csv("data/companies.csv", parseCompany).then(animateCompanies);
 };
 window.onload = main;
