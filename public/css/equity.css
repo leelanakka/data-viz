@@ -1,0 +1,15 @@
+.x-axis text {
+  transform: rotate(-40deg);
+  text-anchor: end;
+}
+
+.close {
+  fill: none;
+  stroke: blue;
+}
+
+.sma {
+    fill: none;
+    stroke:black;
+    stroke-width: 2px;
+  }
