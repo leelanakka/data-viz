@@ -1,8 +1,9 @@
-const chartSize = { width: 1200, height: 800 };
+const chartSize = { width: 1200, height: 600 };
 const margin = { left: 100, right: 10, top: 20, bottom: 150 };
 const width = chartSize.width - margin.left - margin.right;
 const height = chartSize.height - margin.top - margin.bottom;
 
+const removePaths = () => d3.selectAll("path").remove();
 const initChart = () => {
   const svg = d3
     .select("#chart-area svg")
@@ -90,9 +91,39 @@ const analysedata = quotes => {
   }
 };
 
+const formatDate = time => {
+  return new Date(time).toJSON().split("T")[0];
+};
+
+const showSlider = (Times, quotes) => {
+  const firstQuoteTime = _.first(Times).getTime();
+  const lastQuoteTime = _.last(Times).getTime();
+  const slider = createD3RangeSlider(
+    firstQuoteTime,
+    lastQuoteTime,
+    "#slider-container"
+  );
+
+  slider.onChange(newRange => {
+    d3.select("#range-label").text(
+      formatDate(newRange.begin) + " to " + formatDate(newRange.end)
+    );
+    const quotesBetweenRange = quotes.filter(
+      quote =>
+        quote.Time.getTime() >= newRange.begin &&
+        quote.Time.getTime() <= newRange.end
+    );
+    removePaths();
+    update(quotesBetweenRange);
+  });
+
+  slider.range(firstQuoteTime, firstQuoteTime + 10);
+};
+
 const visualizeQuotes = quotes => {
   analysedata(quotes);
   initChart();
+  showSlider(_.map(quotes, "Time"), quotes);
   update(quotes);
 };
 
