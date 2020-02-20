@@ -1,3 +1,4 @@
+const transactions = [];
 const chartSize = { width: 1200, height: 600 };
 const margin = { left: 100, right: 10, top: 20, bottom: 150 };
 const width = chartSize.width - margin.left - margin.right;
@@ -88,7 +89,33 @@ const parseNumerics = ({ Date, Volume, AdjClose, ...numerics }) => {
   return { Date, Time, ...numerics };
 };
 
-const transactions = [];
+const drawTransactionTable = transactions => {
+  const table = d3.select("#transactions").append("table");
+  const header = table.append("thead").append("tr");
+  header
+    .selectAll("th")
+    .data(["Buy Date", "Buy Price", "Sell Date", "Sell Price", "Profit/Loss"])
+    .enter()
+    .append("th")
+    .text(d => d);
+  const tableBody = table.append("tbody");
+  const rows = tableBody
+    .selectAll("tr")
+    .data(transactions)
+    .enter()
+    .append("tr");
+  const cells = rows
+    .selectAll("td")
+    .data(d => {
+      const buyPrice = _.round(d.buy.Close);
+      const sellPrice = _.round(d.sell.Close);
+      const difference = sellPrice - buyPrice;
+      return [d.buy.Date, buyPrice, d.sell.Date, sellPrice, difference];
+    })
+    .enter()
+    .append("td")
+    .text(d => d);
+};
 
 const transaction = (buy, sell) => {
   return { buy, sell };
@@ -117,7 +144,6 @@ const analysedata = (quotes, noOfDays) => {
       transactions.push(transaction(buy, quotes[index]));
     }
   }
-  console.log(transactions);
 };
 
 const formatDate = time => {
@@ -155,6 +181,7 @@ const visualizeQuotes = quotes => {
   initChart();
   showSlider(_.map(quotes, "Time"), quotes);
   update(quotes);
+  drawTransactionTable(transactions);
 };
 
 const main = () => {
