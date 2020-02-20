@@ -3,7 +3,12 @@ const margin = { left: 100, right: 10, top: 20, bottom: 150 };
 const width = chartSize.width - margin.left - margin.right;
 const height = chartSize.height - margin.top - margin.bottom;
 
-const removePaths = () => d3.selectAll("path").remove();
+const removePaths = () =>
+  d3
+    .select("#chart-area")
+    .selectAll("path")
+    .remove();
+
 const initChart = () => {
   const svg = d3
     .select("#chart-area svg")
@@ -95,29 +100,30 @@ const formatDate = time => {
   return new Date(time).toJSON().split("T")[0];
 };
 
-const showSlider = (Times, quotes) => {
-  const firstQuoteTime = _.first(Times).getTime();
-  const lastQuoteTime = _.last(Times).getTime();
-  const slider = createD3RangeSlider(
-    firstQuoteTime,
-    lastQuoteTime,
-    "#slider-container"
-  );
+const showSlider = (times, quotes) => {
+  const slider = d3
+    .sliderHorizontal()
+    .min(0)
+    .max(times.length - 1)
+    .width(800)
+    .default([0, times.length - 1])
+    .tickFormat(index => times[_.floor(index)].toString().split(" ")[3])
+    .on("onchange", val => {
+      const startDate = quotes[_.floor(val[0])].Date;
+      const endDate = quotes[_.floor(val[1])].Date;
+      d3.select("#range-label").text(`${startDate} to ${endDate}`);
+      const quotesBetweenRange = quotes.slice(_.floor(val[0]), _.floor(val[1]));
+      removePaths();
+      update(quotesBetweenRange);
+    });
 
-  slider.onChange(newRange => {
-    d3.select("#range-label").text(
-      formatDate(newRange.begin) + " to " + formatDate(newRange.end)
-    );
-    const quotesBetweenRange = quotes.filter(
-      quote =>
-        quote.Time.getTime() >= newRange.begin &&
-        quote.Time.getTime() <= newRange.end
-    );
-    removePaths();
-    update(quotesBetweenRange);
-  });
-
-  slider.range(firstQuoteTime, firstQuoteTime + 10);
+  d3.select("#slider-container")
+    .append("svg")
+    .attr("width", 1000)
+    .attr("height", 100)
+    .append("g")
+    .attr("transform", "translate(30,30)")
+    .call(slider);
 };
 
 const visualizeQuotes = quotes => {
