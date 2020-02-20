@@ -88,12 +88,36 @@ const parseNumerics = ({ Date, Volume, AdjClose, ...numerics }) => {
   return { Date, Time, ...numerics };
 };
 
+const transactions = [];
+
+const transaction = (buy, sell) => {
+  return { buy, sell };
+};
+
 const analysedata = (quotes, noOfDays) => {
   for (let index = noOfDays; index <= quotes.length; index++) {
     const hundredQuotes = quotes.slice(index - noOfDays, index);
     const hundredDayAverage = _.sum(_.map(hundredQuotes, "Close")) / noOfDays;
     quotes[index - 1].sma = _.round(hundredDayAverage);
   }
+  let stockBought = false;
+  let buy = [];
+  for (let index = noOfDays; index < quotes.length; index++) {
+    const sma = quotes[index].sma;
+    const close = quotes[index].Close;
+    if (close > sma && !stockBought) {
+      stockBought = true;
+      buy = quotes[index];
+    }
+    if (close < sma && stockBought) {
+      stockBought = false;
+      transactions.push(transaction(buy, quotes[index]));
+    }
+    if (index == quotes.length - 1) {
+      transactions.push(transaction(buy, quotes[index]));
+    }
+  }
+  console.log(transactions);
 };
 
 const formatDate = time => {
@@ -127,7 +151,7 @@ const showSlider = (times, quotes) => {
 };
 
 const visualizeQuotes = quotes => {
-  analysedata(quotes,100);
+  analysedata(quotes, 100);
   initChart();
   showSlider(_.map(quotes, "Time"), quotes);
   update(quotes);

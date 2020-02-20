@@ -5,12 +5,12 @@
 
 .close {
   fill: none;
-  stroke: black;
+  stroke:black
 }
 
 .sma {
   fill: none;
-  stroke: blue;
+  stroke:  blue;
   stroke-width: 2px;
 }
 
