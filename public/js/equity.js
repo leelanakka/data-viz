@@ -88,10 +88,10 @@ const parseNumerics = ({ Date, Volume, AdjClose, ...numerics }) => {
   return { Date, Time, ...numerics };
 };
 
-const analysedata = quotes => {
-  for (let index = 100; index <= quotes.length; index++) {
-    const hundredQuotes = quotes.slice(index - 100, index);
-    const hundredDayAverage = _.sum(_.map(hundredQuotes, "Close")) / 100;
+const analysedata = (quotes, noOfDays) => {
+  for (let index = noOfDays; index <= quotes.length; index++) {
+    const hundredQuotes = quotes.slice(index - noOfDays, index);
+    const hundredDayAverage = _.sum(_.map(hundredQuotes, "Close")) / noOfDays;
     quotes[index - 1].sma = _.round(hundredDayAverage);
   }
 };
@@ -127,7 +127,7 @@ const showSlider = (times, quotes) => {
 };
 
 const visualizeQuotes = quotes => {
-  analysedata(quotes);
+  analysedata(quotes,100);
   initChart();
   showSlider(_.map(quotes, "Time"), quotes);
   update(quotes);
