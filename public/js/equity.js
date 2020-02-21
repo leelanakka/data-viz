@@ -89,6 +89,70 @@ const parseNumerics = ({ Date, Volume, AdjClose, ...numerics }) => {
   return { Date, Time, ...numerics };
 };
 
+const drawAveragesTable = transactions => {
+  let totalWinAmount = 0;
+  let totalLossAmount = 0;
+  let totalWins = 0;
+  let totalLosses = 0;
+  for (let index = 0; index < transactions.length; index++) {
+    const transaction = transactions[index];
+    const net = transaction.sell.Close - transaction.buy.Close;
+    if (net > 0) {
+      totalWinAmount += net;
+      totalWins++;
+    } else {
+      totalLossAmount += net;
+      totalLosses++;
+    }
+  }
+  const averageWinAmount = totalWinAmount / totalWins;
+  const averageLossAmount = totalLossAmount / totalLosses;
+  const netAmount = totalWinAmount + totalLossAmount;
+  const table = d3
+    .select("#statsTable")
+    .append("table")
+    .attr("class", "statTable");
+
+  const tableBody = table.append("tbody");
+
+  const totalTransactions = transactions.length;
+  const stats = [
+    totalTransactions,
+    totalWins,
+    totalLosses,
+    `${_.round((totalWins / totalTransactions) * 100, 2)}%`,
+    _.round(totalLosses / totalWins, 2),
+    "",
+    _.round(averageWinAmount),
+    _.round(-averageLossAmount),
+    _.round(averageWinAmount / -averageLossAmount, 2),
+    "",
+    _.round(netAmount),
+    _.round(totalWinAmount / totalTransactions)
+  ];
+  const rows = tableBody
+    .selectAll("tr")
+    .data([
+      "played",
+      "wins",
+      "losses",
+      "win %",
+      "loss multiple",
+      "",
+      "average win",
+      "average loss",
+      "win multiple",
+      "",
+      "net",
+      "expectancy"
+    ])
+    .enter()
+    .append("tr")
+    .text(d => d)
+    .append("td")
+    .text((d, i) => stats[i]);
+};
+
 const drawTransactionTable = transactions => {
   const table = d3.select("#transactions").append("table");
   const header = table.append("thead").append("tr");
@@ -121,29 +185,29 @@ const transaction = (buy, sell) => {
   return { buy, sell };
 };
 
+const detectTransaction = (quotes, noOfDays) => {
+  let stockBought = false;
+  let buy = [];
+  for (let index = noOfDays; index < quotes.length; index++) {
+    const { sma, Close } = quotes[index];
+    if (Close > sma && !stockBought) {
+      stockBought = true;
+      buy = quotes[index];
+    }
+    if ((Close < sma || index == quotes.length - 1) && stockBought) {
+      stockBought = false;
+      transactions.push(transaction(buy, quotes[index]));
+    }
+  }
+};
+
 const analysedata = (quotes, noOfDays) => {
   for (let index = noOfDays; index <= quotes.length; index++) {
     const hundredQuotes = quotes.slice(index - noOfDays, index);
     const hundredDayAverage = _.sum(_.map(hundredQuotes, "Close")) / noOfDays;
     quotes[index - 1].sma = _.round(hundredDayAverage);
   }
-  let stockBought = false;
-  let buy = [];
-  for (let index = noOfDays; index < quotes.length; index++) {
-    const sma = quotes[index].sma;
-    const close = quotes[index].Close;
-    if (close > sma && !stockBought) {
-      stockBought = true;
-      buy = quotes[index];
-    }
-    if (close < sma && stockBought) {
-      stockBought = false;
-      transactions.push(transaction(buy, quotes[index]));
-    }
-    if (index == quotes.length - 1) {
-      transactions.push(transaction(buy, quotes[index]));
-    }
-  }
+  detectTransaction(quotes, noOfDays);
 };
 
 const formatDate = time => {
@@ -182,6 +246,7 @@ const visualizeQuotes = quotes => {
   showSlider(_.map(quotes, "Time"), quotes);
   update(quotes);
   drawTransactionTable(transactions);
+  drawAveragesTable(transactions);
 };
 
 const main = () => {

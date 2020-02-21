@@ -44,3 +44,8 @@ th,td {
     padding: 3px;
     text-align: center;
 }
+
+.statTable{
+    position: relative;
+    left: 100px;
+}
