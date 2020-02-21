@@ -89,7 +89,7 @@ const parseNumerics = ({ Date, Volume, AdjClose, ...numerics }) => {
   return { Date, Time, ...numerics };
 };
 
-const drawAveragesTable = transactions => {
+const calculateAverages = transactions => {
   let totalWinAmount = 0;
   let totalLossAmount = 0;
   let totalWins = 0;
@@ -105,9 +105,51 @@ const drawAveragesTable = transactions => {
       totalLosses++;
     }
   }
+  const totalTransactions = transactions.length;
   const averageWinAmount = totalWinAmount / totalWins;
   const averageLossAmount = totalLossAmount / totalLosses;
   const netAmount = totalWinAmount + totalLossAmount;
+  const winPercentage = _.round((totalWins / totalTransactions) * 100, 2);
+
+  return {
+    totalLossAmount,
+    totalWinAmount,
+    totalLosses,
+    totalWins,
+    averageWinAmount,
+    averageLossAmount,
+    netAmount,
+    winPercentage,
+    totalTransactions
+  };
+};
+
+const drawAveragesTable = transactions => {
+  const statFields = [
+    "played",
+    "wins",
+    "losses",
+    "win %",
+    "loss multiple",
+    "",
+    "average win",
+    "average loss",
+    "win multiple",
+    "",
+    "net",
+    "expectancy"
+  ];
+  const {
+    totalWinAmount,
+    totalLosses,
+    totalWins,
+    averageWinAmount,
+    averageLossAmount,
+    netAmount,
+    winPercentage,
+    totalTransactions
+  } = calculateAverages(transactions);
+
   const table = d3
     .select("#statsTable")
     .append("table")
@@ -115,12 +157,11 @@ const drawAveragesTable = transactions => {
 
   const tableBody = table.append("tbody");
 
-  const totalTransactions = transactions.length;
   const stats = [
     totalTransactions,
     totalWins,
     totalLosses,
-    `${_.round((totalWins / totalTransactions) * 100, 2)}%`,
+    `${winPercentage}%`,
     _.round(totalLosses / totalWins, 2),
     "",
     _.round(averageWinAmount),
@@ -132,20 +173,7 @@ const drawAveragesTable = transactions => {
   ];
   const rows = tableBody
     .selectAll("tr")
-    .data([
-      "played",
-      "wins",
-      "losses",
-      "win %",
-      "loss multiple",
-      "",
-      "average win",
-      "average loss",
-      "win multiple",
-      "",
-      "net",
-      "expectancy"
-    ])
+    .data(statFields)
     .enter()
     .append("tr")
     .text(d => d)
@@ -154,11 +182,18 @@ const drawAveragesTable = transactions => {
 };
 
 const drawTransactionTable = transactions => {
+  const transactionFields = [
+    "Buy Date",
+    "Buy Price",
+    "Sell Date",
+    "Sell Price",
+    "Profit/Loss"
+  ];
   const table = d3.select("#transactions").append("table");
   const header = table.append("thead").append("tr");
   header
     .selectAll("th")
-    .data(["Buy Date", "Buy Price", "Sell Date", "Sell Price", "Profit/Loss"])
+    .data(transactionFields)
     .enter()
     .append("th")
     .text(d => d);
