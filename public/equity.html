@@ -16,13 +16,29 @@
     <script src="js/equity.js"></script>
     <div class="container">
       <div class="row">
-        <div id="slider-container"></div>
+        <div class="some">
+          <div id="slider-container"></div>
+        </div>
         <div id="range-label"></div>
+
         <div id="chart-area">
           <svg></svg>
         </div>
-        <div id="transactions"></div>
-        <div id="statsTable">
+        <div id="transactionsTable">
+          <table id="transactions">
+            <thead>
+              <tr>
+                <th>Buy Date</th>
+                <th>Buy Price</th>
+                <th>Sell Date</th>
+                <th>Sell Price</th>
+                <th>Profit/Loss</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+        <div>
+          <table class="statTable"></table>
         </div>
       </div>
     </div>

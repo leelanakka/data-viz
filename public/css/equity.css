@@ -2,50 +2,60 @@
   transform: rotate(-40deg);
   text-anchor: end;
 }
-
+/* 
+input{
+    width: ;
+} */
 .close {
   fill: none;
-  stroke:black
+  stroke: black;
 }
 
+.some {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
 .sma {
   fill: none;
-  stroke:  blue;
+  stroke: blue;
   stroke-width: 2px;
 }
 
-body{
-    font-family: Arial;
+body {
+  font-family: Arial;
 }
-h1{
-    color: #0099FF;
+h1 {
+  color: #0099ff;
 }
-p{
-    color: #000000;
+p {
+  color: #000000;
 }
-tr{
-    background-color: #FF8448;
-
+tr {
+  background-color: #ff8448;
 }
-td{
-    background-color: #0099FF;
-}
-
-table{
-    color: #FFFFFF;
+td {
+  background-color: #0099ff;
 }
 
-tr,td,th {
-    border: 1px solid black;
-    border-collapse: collapse;
+table {
+  color: #ffffff;
 }
 
-th,td {
-    padding: 3px;
-    text-align: center;
+tr,
+td,
+th {
+  border: 1px solid black;
+  border-collapse: collapse;
 }
 
-.statTable{
-    position: relative;
-    left: 100px;
+th,
+td {
+  padding: 3px;
+  text-align: center;
+}
+
+.statTable {
+  position: relative;
+  left: 100px;
 }
