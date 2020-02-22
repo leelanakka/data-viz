@@ -291,12 +291,12 @@ const showAverageInput = quotes => {
 };
 
 const visualizeQuotes = quotes => {
-  const trans = analysedata(quotes, 100);
+  const transactions = analysedata(quotes, 100);
   initChart();
   showSlider(_.map(quotes, "Time"), quotes);
   update(quotes, 100);
-  drawTransactionTable(trans);
-  drawStatsTable(trans);
+  drawTransactionTable(transactions);
+  drawStatsTable(transactions);
   showAverageInput(quotes);
 };
 
