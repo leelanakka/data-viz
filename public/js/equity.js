@@ -1,5 +1,3 @@
-let focusQuotes = [];
-let transactions = [];
 const chartSize = { width: 1000, height: 600 };
 const margin = { left: 100, right: 10, top: 20, bottom: 150 };
 const width = chartSize.width - margin.left - margin.right;
@@ -160,7 +158,6 @@ const drawStatsTable = transactions => {
   const table = d3.selectAll(".statTable");
 
   const tableBody = table.append("tbody");
-
   const stats = [
     totalTransactions,
     totalWins,
@@ -216,7 +213,7 @@ const transaction = (buy, sell) => {
 };
 
 const detectTransaction = (quotes, noOfDays) => {
-  const some = [];
+  const transactions = [];
   let stockBought = false;
   let buy = [];
   for (let index = noOfDays; index < quotes.length; index++) {
@@ -227,10 +224,10 @@ const detectTransaction = (quotes, noOfDays) => {
     }
     if ((Close < sma || index == quotes.length - 1) && stockBought) {
       stockBought = false;
-      some.push(transaction(buy, quotes[index]));
+      transactions.push(transaction(buy, quotes[index]));
     }
   }
-  transactions = some;
+  return transactions;
 };
 
 const analysedata = (quotes, noOfDays) => {
@@ -239,7 +236,7 @@ const analysedata = (quotes, noOfDays) => {
     const hundredDayAverage = _.sum(_.map(hundredQuotes, "Close")) / noOfDays;
     quotes[index - 1].sma = _.round(hundredDayAverage);
   }
-  detectTransaction(quotes, noOfDays);
+  return detectTransaction(quotes, noOfDays);
 };
 
 const formatDate = time => {
@@ -259,7 +256,6 @@ const showSlider = (times, quotes) => {
       const endDate = quotes[_.floor(val[1])].Date;
       d3.select("#range-label").text(`${startDate} to ${endDate}`);
       const quotesBetweenRange = quotes.slice(_.floor(val[0]), _.floor(val[1]));
-      focusQuotes = quotesBetweenRange;
       removePaths();
       update(quotesBetweenRange, d3.select(".averageInput").property("value"));
     });
@@ -283,25 +279,24 @@ const showAverageInput = quotes => {
     .attr("value", 100)
     .attr("max", "3000")
     .on("input", function() {
-      analysedata(focusQuotes, this.value);
+      analysedata(quotes, this.value);
       removePaths();
-      update(focusQuotes, this.value);
-      detectTransaction(focusQuotes, this.value);
+      update(quotes, this.value);
+      const trans = detectTransaction(quotes, this.value);
       removeTransactionTable();
       removeStatsTable();
-      drawTransactionTable(transactions);
-      drawStatsTable(transactions);
+      drawTransactionTable(trans);
+      drawStatsTable(trans);
     });
 };
 
 const visualizeQuotes = quotes => {
-  focusQuotes = quotes;
-  analysedata(quotes, 100);
+  const trans = analysedata(quotes, 100);
   initChart();
   showSlider(_.map(quotes, "Time"), quotes);
   update(quotes, 100);
-  drawTransactionTable(transactions);
-  drawStatsTable(transactions);
+  drawTransactionTable(trans);
+  drawStatsTable(trans);
   showAverageInput(quotes);
 };
 
